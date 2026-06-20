@@ -1,5 +1,0 @@
----
-# tasks file for hostname
-- name: Set hostname
-  ansible.builtin.hostname:
-      name: "linuxfactory-{{ lf_env }}"
