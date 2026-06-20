@@ -1,0 +1,21 @@
+---
+- name: Swapfile Disable. Block
+  when: not ansible_facts['memory_mb']['swap']['total'] == 0
+  block:
+      - name: Disable the swap file
+        ansible.builtin.shell: swapoff "{{ swapfile }}"
+
+      - name: Remove the swap file
+        ansible.builtin.file:
+            path: "{{ swapfile }}"
+            state: absent
+
+      - name: Remove swap file from fstab
+        ansible.builtin.mount:
+            name: none
+            src: "{{ swapfile }}"
+            fstype: swap
+            opts: sw
+            passno: 0
+            dump: 0
+            state: absent

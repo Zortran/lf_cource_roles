@@ -1,38 +1,37 @@
 ---
-# tasks file for common
 - name: Set timezone to Europe/Moscow
   community.general.timezone:
-      name: Europe/Moscow
+      name: "{{ time_zone }}"
 
 - name: Configure swap file. Block
 
   block:
       - name: Create a swap file
-        ansible.builtin.shell: fallocate -l {{ swap_size }} /swapfile
+        ansible.builtin.shell: fallocate -l {{ swap_size }} "{{ swapfile }}"
         args:
-            creates: /swapfile
+            creates: "{{ swapfile }}"
         when: not ansible_check_mode
 
       - name: Set the correct permissions
         ansible.builtin.file:
-            path: /swapfile
+            path: "{{ swapfile }}"
             owner: root
             group: root
             mode: "0600"
         when: not ansible_check_mode
 
       - name: Make the file a swap file
-        ansible.builtin.shell: mkswap /swapfile
+        ansible.builtin.shell: mkswap "{{ swapfile }}"
         when: not ansible_check_mode and ansible_facts.swapfree_mb == 0
 
       - name: Enable the swap file
-        ansible.builtin.shell: swapon /swapfile
+        ansible.builtin.shell: swapon "{{ swapfile }}"
         when: not ansible_check_mode and ansible_facts.swapfree_mb == 0
 
       - name: Add swap file to fstab
         ansible.builtin.mount:
             name: none
-            src: /swapfile
+            src: "{{ swapfile }}"
             fstype: swap
             opts: sw
             passno: 0

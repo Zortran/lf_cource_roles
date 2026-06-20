@@ -1,2 +1,4 @@
 ---
 swap_size: 1G
+swapfile: /swapfile
+time_zone: Europe/Moscow
