@@ -7,13 +7,13 @@
 
       - name: Remove the swap file
         ansible.builtin.file:
-            path: "{{ swapfile }}"
+            path: "{{ common_swapfile }}"
             state: absent
 
       - name: Remove swap file from fstab
-        ansible.builtin.mount:
+        ansible.posix.mount:
             name: none
-            src: "{{ swapfile }}"
+            src: "{{ common_swapfile }}"
             fstype: swap
             opts: sw
             passno: 0

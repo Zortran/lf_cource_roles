@@ -1,0 +1,15 @@
+---
+common_deafult_user:
+  groups:
+    - sudo
+  shell: /bin/bash
+  create_home: true
+  update_password: on_create
+  password: '!'
+  authorized:
+    - 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII95YlJYQOEFkZzgwe7N50OmBNZbcSMAO185o33Bvwt6'
+common_users:
+  - login: ansibleuser
+    full_name: Ansible User
+  - login: zortran
+    full_name: Zortran User

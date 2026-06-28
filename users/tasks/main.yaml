@@ -1,0 +1,36 @@
+---
+- name: sudo pkg install
+  ansible.builtin.package:
+    name: sudo
+    state: present
+- name: create base groups
+  ansible.builtin.group:
+    name: "{{ item }}"
+  with_items:
+    - "{{ common_deafult_user.groups }}"
+- name: Create user's account
+  when: item.login is defined and item.login != '' and item.full_name is defined
+  with_items: "{{ common_users }}"
+  ansible.builtin.user:
+    name: "{{ item.login }}"
+    comment: "{{ item.full_name }}"
+    groups: "{{ item.groups | default(common_deafult_user.groups, true) }}"
+    shell: "{{ common_deafult_user.shell | default(common_deafult_user.shell, true) }}"
+    create_home: "{{ common_deafult_user.create_home | default(common_deafult_user.create_home, true) }}"
+    update_password: "{{ common_deafult_user.update_password | default(common_deafult_user.update_password, true) }}"
+    password: "{{ item.password | default(common_deafult_user.password, true) }}" # noqa no-log-password
+- name: Prepare users authorized keys list
+  ansible.builtin.set_fact:
+    users_for_keys: "{{ users_for_keys | default([]) + [user_entry] }}"
+  vars:
+    user_entry: "{{ item | combine({'authorized': item.authorized | default(common_deafult_user.authorized, true)}) }}"
+  with_items: "{{ common_users }}"
+  when: item.login is defined and item.login != '' and item.full_name is defined
+- name: Copy public ssh key
+  ansible.builtin.authorized_key:
+    user: "{{ item.0.login }}"
+    key: "{{ item.1 }}"
+    state: present
+  with_subelements:
+    - "{{ users_for_keys }}"
+    - authorized
