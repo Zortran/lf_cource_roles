@@ -1,4 +1,6 @@
 ---
+common_sudo_nopasswd: true
+common_sudo_nopasswd_rule: '%sudo ALL=(ALL:ALL) NOPASSWD: ALL'
 common_deafult_user:
   groups:
     - sudo

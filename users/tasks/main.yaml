@@ -3,11 +3,29 @@
   ansible.builtin.package:
     name: sudo
     state: present
+  become: true
 - name: create base groups
   ansible.builtin.group:
     name: "{{ item }}"
   with_items:
     - "{{ common_deafult_user.groups }}"
+  become: true
+- name: Configure passwordless sudo for sudo group
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/sudo-nopasswd
+    content: "{{ common_sudo_nopasswd_rule }}\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+  when: common_sudo_nopasswd | bool
+  become: true
+- name: Remove passwordless sudo for sudo group
+  ansible.builtin.file:
+    path: /etc/sudoers.d/sudo-nopasswd
+    state: absent
+  when: not common_sudo_nopasswd | bool
+  become: true
 - name: Create user's account
   when: item.login is defined and item.login != '' and item.full_name is defined
   with_items: "{{ common_users }}"
@@ -19,6 +37,7 @@
     create_home: "{{ common_deafult_user.create_home | default(common_deafult_user.create_home, true) }}"
     update_password: "{{ common_deafult_user.update_password | default(common_deafult_user.update_password, true) }}"
     password: "{{ item.password | default(common_deafult_user.password, true) }}" # noqa no-log-password
+  become: true
 - name: Prepare users authorized keys list
   ansible.builtin.set_fact:
     users_for_keys: "{{ users_for_keys | default([]) + [user_entry] }}"
@@ -26,6 +45,7 @@
     user_entry: "{{ item | combine({'authorized': item.authorized | default(common_deafult_user.authorized, true)}) }}"
   with_items: "{{ common_users }}"
   when: item.login is defined and item.login != '' and item.full_name is defined
+  become: true
 - name: Copy public ssh key
   ansible.builtin.authorized_key:
     user: "{{ item.0.login }}"
@@ -34,3 +54,4 @@
   with_subelements:
     - "{{ users_for_keys }}"
     - authorized
+  become: true
